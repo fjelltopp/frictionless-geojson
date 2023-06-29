@@ -1,4 +1,4 @@
-name: main
+name: general
 
 on:
   push:
@@ -9,21 +9,24 @@ on:
   pull_request:
     branches:
       - main
+  schedule:
+    - cron: "0 3 * * *"
 
 jobs:
 
   # Test (Linux)
 
   test-linux:
+    if: github.event_name != 'schedule' || github.repository_owner == 'fjelltopp'
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.6, 3.7, 3.8, 3.9]
+        python-version: ['3.8', '3.9', '3.10']
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
       - name: Install Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
@@ -31,10 +34,37 @@ jobs:
       - name: Test software
         run: make test-ci
       - name: Report coverage
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v2
+    services:
+      postgres:
+        image: postgres:12
+        env:
+          POSTGRES_DB: test
+          POSTGRES_PASSWORD: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      mysql:
+        image: mysql:8
+        env:
+            MYSQL_DATABASE: test
+            MYSQL_ALLOW_EMPTY_PASSWORD: yes
+        ports:
+            - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
 
   # Test (MacOS)
+
   test-macos:
+    if: github.event_name != 'schedule' || github.repository_owner == 'fjelltopp'
     runs-on: macos-latest
     steps:
       - name: Checkout repository
@@ -50,7 +80,9 @@ jobs:
         run: make test
 
   # Test (Windows)
+
   test-windows:
+    if: github.event_name != 'schedule' || github.repository_owner == 'fjelltopp'
     runs-on: windows-latest
     steps:
       - name: Checkout repository
@@ -64,7 +96,7 @@ jobs:
       - name: Test software
         run: make test
 
-# Release
+  # Release
 
   release:
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
@@ -84,10 +116,10 @@ jobs:
       - name: Build distribution
         run: |
           python setup.py sdist bdist_wheel
-      - name: Publish to PYPI
-        uses: pypa/gh-action-pypi-publish@master
-        with:
-          password: ${{ secrets.PYPI_API_KEY }}
+    #   - name: Publish to PYPI
+    #     uses: pypa/gh-action-pypi-publish@release/v1
+    #     with:
+    #       password: ${{ secrets.PYPI_API_KEY }}
       - name: Release to GitHub
         uses: softprops/action-gh-release@v1
         env:

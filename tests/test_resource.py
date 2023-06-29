@@ -1,30 +1,22 @@
-from frictionless import Resource, helpers
+from frictionless import Resource
 
-IS_UNIX = not helpers.is_platform("windows")
-
+from .helpers import geo, path
 
 # General
 
 
 def test_resource():
-    resource = Resource("data/geo.geojson")
+    resource = Resource(path)
     assert resource.name == "geo"
-    assert resource.fullpath == "data/geo.geojson" if IS_UNIX else "data\\geo.geojson"
-    assert resource.profile == "tabular-data-resource"
-    assert resource.read_rows() == [
-        {
-            "id": 1,
-            "name": "Polygon",
-            "_geom": "POLYGON ((8.47771167755127 47.38199192001289, 8.495779037475586 47.38199192001289, 8.495779037475586 47.39091206104779, 8.47771167755127 47.39091206104779, 8.47771167755127 47.38199192001289))",
-        },
-        {
-            "id": 2,
-            "name": "LineString",
-            "_geom": "LINESTRING (8.47771167755127 47.38199192001289, 8.495779037475586 47.38199192001289)",
-        },
-        {
-            "id": 3,
-            "name": "Point",
-            "_geom": "POINT (8.47771167755127 47.38199192001289)",
-        },
-    ]
+    assert resource.path == path
+    assert resource.data is None
+    assert resource.type == "table"
+    assert resource.scheme == "file"
+    assert resource.format == "geojson"
+    assert resource.innerpath is None
+    assert resource.compression is None
+    assert resource.memory is False
+    assert resource.remote is False
+    assert resource.multipart is False
+    assert resource.basepath is None
+    assert resource.read_rows() == geo
