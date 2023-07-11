@@ -1,33 +1,43 @@
-.PHONY: all install lint release test test-ci
+.PHONY: all coverage install format github lint release test test-ci
 
-PACKAGE := $(shell grep '^name =' setup.cfg | cut -d '=' -f2 | sed 's/ //g')
-VERSION := $(shell head -n 1 $(PACKAGE)/assets/VERSION)
+
+PACKAGE := $(shell grep '^name =' pyproject.toml | cut -d '"' -f2)
+DIR := $(subst -,_,$(PACKAGE))
+VERSION := $(shell grep '^__version__ =' ${DIR}/__init__.py | cut -d '"' -f2)
+LEAD := $(shell head -n 1 LEAD.md)
+
+
+all:
+	@grep '^\.PHONY' Makefile | cut -d' ' -f2- | tr ' ' '\n'
+
+coverage:
+	sensible-browser coverage/index.html
+
+format:
+	ruff $(DIR) tests --fix
+	isort $(DIR) tests
+	black $(DIR) tests
 
 install:
 	pip install --upgrade -e .[dev]
-	test -f '.git/hooks/pre-commit' || cp .gitverify .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
-
-dev:
-	python3 -m pip install -e .
-
-build:
-	python3 -m pip install --upgrade build
-	python3 -m build
 
 lint:
-	pylama $(PACKAGE) tests
+	ruff $(DIR) tests
+	isort $(DIR) tests --check
+	black $(DIR) tests --check
+	# pyright $(DIR) tests
 
 release:
 	git checkout main && git pull origin && git fetch -p
 	@git log --pretty=format:"%C(yellow)%h%Creset %s%Cgreen%d" --reverse -20
-	@echo "\nReleasing v$(VERSION) in 10 seconds.\nDid you bump $(PACKAGE)/assets/VERSION, setup.cfg and updated CHANGELOG.md?\nPress <CTRL+C> to abort\n" && sleep 10
-	git commit -a -m 'v$(VERSION)' && git tag -a v$(VERSION) -m 'v$(VERSION)'
+	@echo "\nReleasing v$(VERSION) in 10 seconds. Press <CTRL+C> to abort\n" && sleep 10
+	make test && git commit -a -m 'v$(VERSION)' && git tag -a v$(VERSION) -m 'v$(VERSION)'
 	git push --follow-tags
 
 test:
 	make lint
-	pytest --cov ${PACKAGE} --cov-report term-missing --cov-fail-under 70 --cov-report=xml
+	pytest --cov ${DIR} --cov-report term-missing --cov-report html:coverage --cov-fail-under 70 --timeout=300
 
 test-ci:
 	make lint
-	pytest --cov ${PACKAGE} --cov-report term-missing --cov-fail-under 80 --ci
+	pytest --cov ${DIR} --cov-report term-missing --cov-report xml --cov-fail-under 80 --timeout=300 --ci

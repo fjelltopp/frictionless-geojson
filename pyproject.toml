@@ -1,6 +1,103 @@
-[build-system]
-requires = [
-    "setuptools>=42",
-    "wheel"
+[project]
+name = "frictionless-geojson"
+dynamic = ["version"]
+description = "Frictionless Framework plugin for geojson files."
+license = "MIT"
+readme = "README.md"
+requires-python = ">=3.8"
+urls.homepage = "https://github.com/fjelltopp/frictionless-geojson"
+urls.changelog = "https://github.com/fjelltopp/frictionless-geojson/blob/main/CHANGELOG.md"
+authors = [
+    {name = "Open Knowledge Foundation", email = "info@okfn.org"},
+    {name = "Thorben Westerhuys", email = "thorben@cividi.ch"},
+    {name = "Chas Nelson", email = "chas@fjelltopp.org"},
 ]
-build-backend = "setuptools.build_meta"
+keywords=[
+    "data validation",
+    "frictionless data",
+    "open data",
+    "geojson schema",
+    "geojson table schema",
+    "data package",
+    "tabular data package",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "frictionless[csv,json]>=5.1.13",
+]
+
+[project.optional-dependencies]
+dev = [
+    "moto",
+    "ruff",
+    "httpx",
+    "hatch",
+    "isort",
+    "black",
+    "yattag",
+    "pytest",
+    "pyright",
+    "ipython",
+    "livemark",
+    "pytest-cov",
+    "pytest-vcr",
+    "pytest-mock",
+    "pytest-only",
+    "oauth2client",
+    "requests-mock",
+    "pytest-dotenv",
+    "pytest-timeout",
+    "pytest-lazy-fixture",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+path = "frictionless_geojson/settings.py"
+
+[tool.black]
+line-length = 90
+
+[tool.isort]
+profile = "black"
+multi_line_output = 9
+
+[tool.ruff]
+line-length = 90
+ignore = ["E501", "E731"]
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["F401", "F403"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+env_files = [".env"]
+markers = [
+    "ci: integrational tests (select with '--ci')",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning:boto.*",
+    "ignore::DeprecationWarning:moto.*",
+    "ignore::DeprecationWarning:grako.*",
+    "ignore::DeprecationWarning:savWriter.*",
+    "ignore::Warning:duckdb_engine.*",
+]
+
+[tool.pyright]
+strict = ["frictionless_geojson"]
+include = ["frictionless_geojson", "tests"]
+ignore = ["**/__init__.py"]
