@@ -66,7 +66,7 @@ class GeoJsonParser(Parser):
         control = GeoJsonControl.from_dialect(self.resource.dialect)
         with source:
             if self.resource.dialect.header and not control.keyed:
-                pass
+                data["features"].append(source.schema.field_names)
             for row in source.row_stream:
                 item = {"type": "Feature", "properties": {}, "geometry": {}}
                 cells = row.to_list(json=True)

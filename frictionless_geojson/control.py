@@ -3,10 +3,11 @@ from __future__ import annotations
 from typing import List, Optional
 
 import attrs
+
 from frictionless.dialect import Control
 
 
-@attrs.define(kw_only=True)
+@attrs.define(kw_only=True, repr=False)
 class GeoJsonControl(Control):
     """GeoJson control representation.
 

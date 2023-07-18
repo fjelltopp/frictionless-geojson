@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Optional
 
+from frictionless.detector import Detector
 from frictionless.system import Plugin
 
 from .control import GeoJsonControl
@@ -23,7 +24,11 @@ class GeoJsonPlugin(Plugin):
     def detect_resource(self, resource: Resource):
         if resource.format == "geojson":
             resource.mediatype = "application/geo+json"
-            resource.datatype = "table"
+            resource.datatype = (
+                resource.datatype
+                or Detector.detect_metadata_type(resource.normpath, format="json")
+                or "json"
+            )
 
     def select_control_class(self, type: Optional[str] = None):
         if type == "geojson":
