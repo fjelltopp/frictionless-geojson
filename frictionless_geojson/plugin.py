@@ -26,8 +26,8 @@ class GeoJsonPlugin(Plugin):
             resource.mediatype = "application/geo+json"
             resource.datatype = (
                 resource.datatype
-                or Detector.detect_metadata_type(resource.normpath, format="json")
-                or "json"
+                or Detector.detect_metadata_type(resource.normpath)
+                or "table"
             )
 
     def select_control_class(self, type: Optional[str] = None):
