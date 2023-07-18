@@ -22,7 +22,7 @@ class GeoJsonPlugin(Plugin):
 
     def detect_resource(self, resource: Resource):
         if resource.format == "geojson":
-            resource.mediatype = "text/json"
+            resource.mediatype = "application/geo+json"
             resource.datatype = "table"
 
     def select_control_class(self, type: Optional[str] = None):
